@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="./static/image/MiroFish_logo_compressed.jpeg" alt="MiroFish Logo" width="75%"/>
+<img src="./static/image/MiroFish_logo_compressed.jpeg" alt="MiroFish Logo" width="72%"/>
 
 # MiroFish No-Zep
 
-A lightweight refactor of the original **MiroFish** project, focused on philosophy-driven social simulation, especially Plato's *Republic*.
+A lightweight refactor of the original MiroFish project, adjusted for philosophy-oriented social simulation.
 
 [English](./README.md) | [中文文档](./README-ZH.md)
 
@@ -12,43 +12,49 @@ A lightweight refactor of the original **MiroFish** project, focused on philosop
 
 ## What This Repository Is
 
-This is not a mirror of the original MiroFish repository.  
-It is a simplified, scenario-oriented fork built for a specific teaching and research use case.
+This repository is not meant to replace the original MiroFish project.  
+It is a narrower, simpler branch built around a specific use case.
 
-Background:
+The starting point was practical:
 
-- Thales, a philosophy student, wanted to use MiroFish to simulate the society described in Plato's *Republic*.
-- To make the system easier for philosophy instructors to use, the Zep-dependent parts were removed, so teachers do not have to manage extra API services or cloud graph memory.
-- The product refactor and requirement restructuring were led by a first-year e-commerce student at Dalian University of Technology, with a product-manager-oriented focus on usability and workflow clarity.
+- Thales, a philosophy student, wanted to use MiroFish to simulate the social world described in Plato's *Republic*.
+- The original workflow depended on Zep Cloud in places, which added setup cost for instructors who are not especially interested in managing extra APIs and cloud memory services.
+- So this refactor removes that dependency from the main local workflow and tries to keep the project usable with only an LLM API key.
 
-The result is a version of MiroFish that aims to be simple:
+The product refactor and requirement cleanup were led from a product perspective, with the goal of making the system easier to use in teaching and small experiments.
 
-> configure only an LLM API key, then run lightweight philosophy experiments locally.
+In short:
 
-## Key Differences from the Original Project
+> this is a no-Zep, lighter MiroFish branch for local philosophy simulation.
 
-- Removes hard dependency on Zep Cloud.
-- Uses local file graphs when `USE_ZEP=false`.
-- Keeps the multi-agent simulation and report workflow, but simplifies deployment.
-- Optimizes the product flow for philosophy experiments rather than general-purpose "predict anything" branding.
-- Makes classroom and small-lab usage more practical.
+## What Changed
 
-## Good Fit For
+Compared with the upstream project, this branch mainly does the following:
 
-- Plato's *Republic* classroom experiments
-- Philosophy text based social simulations
-- Small-scale thought experiments
-- Teaching demos
-- Researchers who want a lighter local workflow without extra graph-memory services
+- removes hard dependency on Zep Cloud
+- uses local file graphs when `USE_ZEP=false`
+- provides local fallback paths for report retrieval
+- keeps the multi-agent simulation workflow, but simplifies the setup
+- allows direct editing of agent `sentiment_bias` in Step 2
+
+This version is better suited for:
+
+- classroom demos
+- small-scale thought experiments
+- philosophy text based simulations
+- local deployment without extra cloud services
+
+If you want the full upstream vision and ecosystem, you should still refer to the original MiroFish repository.
 
 ## Workflow
 
 1. Upload source material
-2. Build a local graph from the text
-3. Generate personas and simulation configuration
-4. Run dual-platform social simulation
-5. Generate reports from simulation outputs
-6. Continue interacting with agents and the report system
+2. Generate ontology and project text
+3. Build a local graph
+4. Generate personas and simulation config
+5. Run the simulation
+6. Generate a report
+7. Continue interacting with agents and report tools
 
 ## Quick Start
 
@@ -60,11 +66,11 @@ The result is a version of MiroFish that aims to be simple:
 | Python | 3.11 - 3.12 |
 | uv | Latest |
 
-> Python 3.13 is not recommended because some dependencies may fail to build.
+> Python 3.13 is not recommended because some dependencies may fail during installation.
 
-### 1. Configure Environment Variables
+### 1. Configure `.env`
 
-Create a root `.env` file with the minimum required configuration:
+Create a root `.env` file like this:
 
 ```env
 LLM_API_KEY=your_api_key
@@ -78,7 +84,7 @@ PORT=5001
 Notes:
 
 - `USE_ZEP=false` is the intended mode of this fork
-- Any OpenAI-compatible LLM endpoint should work
+- any OpenAI-compatible LLM endpoint should work
 - `ZEP_API_KEY` is no longer required for the main local workflow
 
 ### 2. Install Dependencies
@@ -94,7 +100,7 @@ npm run setup
 npm run setup:backend
 ```
 
-### 3. Start the App
+### 3. Start
 
 ```bash
 npm run dev
@@ -105,16 +111,17 @@ Services:
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:5001`
 
-## Features
+## Main Features Kept in This Fork
 
-### Local Graph Instead of Zep
+### Local Graph
 
 When `USE_ZEP=false`, the project uses local graph JSON files for:
 
-- graph retrieval
+- graph inspection
 - report search
-- quick search / panorama search
-- local report fallback behavior
+- quick search
+- panorama search
+- report-side local fallback logic
 
 ### Scene Hot Configuration
 
@@ -126,15 +133,15 @@ Step 2 supports editable scene configuration:
 - actor list
 - initial posts
 
-This makes the system usable for custom philosophy scenarios instead of one fixed demo world.
+This makes the project usable for custom philosophy scenarios, not only one fixed demo setup.
 
 ### Editable Agent Sentiment Bias
 
-In Step 2, you can directly edit and save:
+In Step 2, you can now directly edit and save:
 
 - `sentiment_bias`
 
-This is useful for adjusting how different characters react to the same event.
+This is useful for simple comparison experiments on how emotional baselines change the simulation.
 
 ## Screenshots
 
@@ -155,33 +162,16 @@ This is useful for adjusting how different characters react to the same event.
 </table>
 </div>
 
-## Relationship to the Original Project
+## Relation to the Original Project
 
 - Original project: `666ghj/MiroFish`
-- This repository: a philosophy-oriented, no-Zep refactor
-
-If you want:
-
-- cloud graph memory
-- the original large-scale prediction framing
-- the full upstream ecosystem
-
-you should refer to the original repository.
-
-If you want:
-
-- local lightweight execution
-- philosophy-friendly teaching workflow
-- *Republic*-style social experiments
-
-this repository is the better entry point.
+- This repository: a lighter no-Zep fork for philosophy simulation
 
 ## Credits
 
 - Original open-source project: **MiroFish**
 - Multi-agent simulation engine: **[OASIS](https://github.com/camel-ai/oasis)**
-- Use-case initiator: Thales, a philosophy student
-- Product refactor and requirement restructuring: a first-year e-commerce student from Dalian University of Technology
+- Use-case initiator: Thales
 
 ## License
 
