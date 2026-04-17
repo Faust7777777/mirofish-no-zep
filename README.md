@@ -2,49 +2,141 @@
 
 <img src="./static/image/MiroFish_logo_compressed.jpeg" alt="MiroFish Logo" width="75%"/>
 
-<a href="https://trendshift.io/repositories/16144" target="_blank"><img src="https://trendshift.io/api/badge/repositories/16144" alt="666ghj%2FMiroFish | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+# MiroFish No-Zep
 
-简洁通用的群体智能引擎，预测万物
-</br>
-<em>A Simple and Universal Swarm Intelligence Engine, Predicting Anything</em>
-
-<a href="https://www.shanda.com/" target="_blank"><img src="./static/image/shanda_logo.png" alt="666ghj%2MiroFish | Shanda" height="40"/></a>
-
-[![GitHub Stars](https://img.shields.io/github/stars/666ghj/MiroFish?style=flat-square&color=DAA520)](https://github.com/666ghj/MiroFish/stargazers)
-[![GitHub Watchers](https://img.shields.io/github/watchers/666ghj/MiroFish?style=flat-square)](https://github.com/666ghj/MiroFish/watchers)
-[![GitHub Forks](https://img.shields.io/github/forks/666ghj/MiroFish?style=flat-square)](https://github.com/666ghj/MiroFish/network)
-[![Docker](https://img.shields.io/badge/Docker-Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://hub.docker.com/)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/666ghj/MiroFish)
-
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=flat-square&logo=discord&logoColor=white)](http://discord.gg/ePf5aPaHnA)
-[![X](https://img.shields.io/badge/X-Follow-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/mirofish_ai)
-[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=flat-square&logo=instagram&logoColor=white)](https://www.instagram.com/mirofish_ai/)
+A lightweight refactor of the original **MiroFish** project, focused on philosophy-driven social simulation, especially Plato's *Republic*.
 
 [English](./README.md) | [中文文档](./README-ZH.md)
 
 </div>
 
-## ⚡ Overview
+## What This Repository Is
 
-**MiroFish** is a next-generation AI prediction engine powered by multi-agent technology. By extracting seed information from the real world (such as breaking news, policy drafts, or financial signals), it automatically constructs a high-fidelity parallel digital world. Within this space, thousands of intelligent agents with independent personalities, long-term memory, and behavioral logic freely interact and undergo social evolution. You can inject variables dynamically from a "God's-eye view" to precisely deduce future trajectories — **rehearse the future in a digital sandbox, and win decisions after countless simulations**.
+This is not a mirror of the original MiroFish repository.  
+It is a simplified, scenario-oriented fork built for a specific teaching and research use case.
 
-> You only need to: Upload seed materials (data analysis reports or interesting novel stories) and describe your prediction requirements in natural language</br>
-> MiroFish will return: A detailed prediction report and a deeply interactive high-fidelity digital world
+Background:
 
-### Our Vision
+- Thales, a philosophy student, wanted to use MiroFish to simulate the society described in Plato's *Republic*.
+- To make the system easier for philosophy instructors to use, the Zep-dependent parts were removed, so teachers do not have to manage extra API services or cloud graph memory.
+- The product refactor and requirement restructuring were led by a first-year e-commerce student at Dalian University of Technology, with a product-manager-oriented focus on usability and workflow clarity.
 
-MiroFish is dedicated to creating a swarm intelligence mirror that maps reality. By capturing the collective emergence triggered by individual interactions, we break through the limitations of traditional prediction:
+The result is a version of MiroFish that aims to be simple:
 
-- **At the Macro Level**: We are a rehearsal laboratory for decision-makers, allowing policies and public relations to be tested at zero risk
-- **At the Micro Level**: We are a creative sandbox for individual users — whether deducing novel endings or exploring imaginative scenarios, everything can be fun, playful, and accessible
+> configure only an LLM API key, then run lightweight philosophy experiments locally.
 
-From serious predictions to playful simulations, we let every "what if" see its outcome, making it possible to predict anything.
+## Key Differences from the Original Project
 
-## 🌐 Live Demo
+- Removes hard dependency on Zep Cloud.
+- Uses local file graphs when `USE_ZEP=false`.
+- Keeps the multi-agent simulation and report workflow, but simplifies deployment.
+- Optimizes the product flow for philosophy experiments rather than general-purpose "predict anything" branding.
+- Makes classroom and small-lab usage more practical.
 
-Welcome to visit our online demo environment and experience a prediction simulation on trending public opinion events we've prepared for you: [mirofish-live-demo](https://666ghj.github.io/mirofish-demo/)
+## Good Fit For
 
-## 📸 Screenshots
+- Plato's *Republic* classroom experiments
+- Philosophy text based social simulations
+- Small-scale thought experiments
+- Teaching demos
+- Researchers who want a lighter local workflow without extra graph-memory services
+
+## Workflow
+
+1. Upload source material
+2. Build a local graph from the text
+3. Generate personas and simulation configuration
+4. Run dual-platform social simulation
+5. Generate reports from simulation outputs
+6. Continue interacting with agents and the report system
+
+## Quick Start
+
+### Requirements
+
+| Tool | Version |
+|------|---------|
+| Node.js | 18+ |
+| Python | 3.11 - 3.12 |
+| uv | Latest |
+
+> Python 3.13 is not recommended because some dependencies may fail to build.
+
+### 1. Configure Environment Variables
+
+Create a root `.env` file with the minimum required configuration:
+
+```env
+LLM_API_KEY=your_api_key
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL_NAME=gpt-4o-mini
+
+USE_ZEP=false
+PORT=5001
+```
+
+Notes:
+
+- `USE_ZEP=false` is the intended mode of this fork
+- Any OpenAI-compatible LLM endpoint should work
+- `ZEP_API_KEY` is no longer required for the main local workflow
+
+### 2. Install Dependencies
+
+```bash
+npm run setup:all
+```
+
+Or step by step:
+
+```bash
+npm run setup
+npm run setup:backend
+```
+
+### 3. Start the App
+
+```bash
+npm run dev
+```
+
+Services:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5001`
+
+## Features
+
+### Local Graph Instead of Zep
+
+When `USE_ZEP=false`, the project uses local graph JSON files for:
+
+- graph retrieval
+- report search
+- quick search / panorama search
+- local report fallback behavior
+
+### Scene Hot Configuration
+
+Step 2 supports editable scene configuration:
+
+- scene name
+- scene description
+- triggering event
+- actor list
+- initial posts
+
+This makes the system usable for custom philosophy scenarios instead of one fixed demo world.
+
+### Editable Agent Sentiment Bias
+
+In Step 2, you can directly edit and save:
+
+- `sentiment_bias`
+
+This is useful for adjusting how different characters react to the same event.
+
+## Screenshots
 
 <div align="center">
 <table>
@@ -63,141 +155,34 @@ Welcome to visit our online demo environment and experience a prediction simulat
 </table>
 </div>
 
-## 🎬 Demo Videos
+## Relationship to the Original Project
 
-### 1. Wuhan University Public Opinion Simulation + MiroFish Project Introduction
+- Original project: `666ghj/MiroFish`
+- This repository: a philosophy-oriented, no-Zep refactor
 
-<div align="center">
-<a href="https://www.bilibili.com/video/BV1VYBsBHEMY/" target="_blank"><img src="./static/image/武大模拟演示封面.png" alt="MiroFish Demo Video" width="75%"/></a>
+If you want:
 
-Click the image to watch the complete demo video for prediction using BettaFish-generated "Wuhan University Public Opinion Report"
-</div>
+- cloud graph memory
+- the original large-scale prediction framing
+- the full upstream ecosystem
 
-### 2. Dream of the Red Chamber Lost Ending Simulation
+you should refer to the original repository.
 
-<div align="center">
-<a href="https://www.bilibili.com/video/BV1cPk3BBExq" target="_blank"><img src="./static/image/红楼梦模拟推演封面.jpg" alt="MiroFish Demo Video" width="75%"/></a>
+If you want:
 
-Click the image to watch MiroFish's deep prediction of the lost ending based on hundreds of thousands of words from the first 80 chapters of "Dream of the Red Chamber"
-</div>
+- local lightweight execution
+- philosophy-friendly teaching workflow
+- *Republic*-style social experiments
 
-> **Financial Prediction**, **Political News Prediction** and more examples coming soon...
+this repository is the better entry point.
 
-## 🔄 Workflow
+## Credits
 
-1. **Graph Building**: Seed extraction & Individual/collective memory injection & GraphRAG construction
-2. **Environment Setup**: Entity relationship extraction & Persona generation & Agent configuration injection
-3. **Simulation**: Dual-platform parallel simulation & Auto-parse prediction requirements & Dynamic temporal memory updates
-4. **Report Generation**: ReportAgent with rich toolset for deep interaction with post-simulation environment
-5. **Deep Interaction**: Chat with any agent in the simulated world & Interact with ReportAgent
+- Original open-source project: **MiroFish**
+- Multi-agent simulation engine: **[OASIS](https://github.com/camel-ai/oasis)**
+- Use-case initiator: Thales, a philosophy student
+- Product refactor and requirement restructuring: a first-year e-commerce student from Dalian University of Technology
 
-## 🚀 Quick Start
+## License
 
-### Option 1: Source Code Deployment (Recommended)
-
-#### Prerequisites
-
-| Tool | Version | Description | Check Installation |
-|------|---------|-------------|-------------------|
-| **Node.js** | 18+ | Frontend runtime, includes npm | `node -v` |
-| **Python** | ≥3.11, ≤3.12 | Backend runtime | `python --version` |
-| **uv** | Latest | Python package manager | `uv --version` |
-
-#### 1. Configure Environment Variables
-
-```bash
-# Copy the example configuration file
-cp .env.example .env
-
-# Edit the .env file and fill in the required API keys
-```
-
-**Required Environment Variables:**
-
-```env
-# LLM API Configuration (supports any LLM API with OpenAI SDK format)
-# Recommended: Alibaba Qwen-plus model via Bailian Platform: https://bailian.console.aliyun.com/
-# High consumption, try simulations with fewer than 40 rounds first
-LLM_API_KEY=your_api_key
-LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-LLM_MODEL_NAME=qwen-plus
-
-# Zep Cloud Configuration
-# Free monthly quota is sufficient for simple usage: https://app.getzep.com/
-ZEP_API_KEY=your_zep_api_key
-```
-
-#### 2. Install Dependencies
-
-```bash
-# One-click installation of all dependencies (root + frontend + backend)
-npm run setup:all
-```
-
-Or install step by step:
-
-```bash
-# Install Node dependencies (root + frontend)
-npm run setup
-
-# Install Python dependencies (backend, auto-creates virtual environment)
-npm run setup:backend
-```
-
-#### 3. Start Services
-
-```bash
-# Start both frontend and backend (run from project root)
-npm run dev
-```
-
-**Service URLs:**
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:5001`
-
-**Start Individually:**
-
-```bash
-npm run backend   # Start backend only
-npm run frontend  # Start frontend only
-```
-
-### Option 2: Docker Deployment
-
-```bash
-# 1. Configure environment variables (same as source deployment)
-cp .env.example .env
-
-# 2. Pull image and start
-docker compose up -d
-```
-
-Reads `.env` from root directory by default, maps ports `3000 (frontend) / 5001 (backend)`
-
-> Mirror address for faster pulling is provided as comments in `docker-compose.yml`, replace if needed.
-
-## 📬 Join the Conversation
-
-<div align="center">
-<img src="./static/image/QQ群.png" alt="QQ Group" width="60%"/>
-</div>
-
-&nbsp;
-
-The MiroFish team is recruiting full-time/internship positions. If you're interested in multi-agent simulation and LLM applications, feel free to send your resume to: **mirofish@shanda.com**
-
-## 📄 Acknowledgments
-
-**MiroFish has received strategic support and incubation from Shanda Group!**
-
-MiroFish's simulation engine is powered by **[OASIS (Open Agent Social Interaction Simulations)](https://github.com/camel-ai/oasis)**, We sincerely thank the CAMEL-AI team for their open-source contributions!
-
-## 📈 Project Statistics
-
-<a href="https://www.star-history.com/#666ghj/MiroFish&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=666ghj/MiroFish&type=date&legend=top-left" />
- </picture>
-</a>
+This repository follows the original project license. See [LICENSE](./LICENSE).
