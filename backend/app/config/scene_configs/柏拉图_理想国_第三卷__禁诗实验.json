@@ -1,0 +1,117 @@
+{
+  "scene_name": "柏拉图《理想国》第三卷——禁诗实验",
+  "scene_description": "古希腊雅典城邦内的哲学思想实验：城邦推行严格的诗歌审查制度，禁止描写英雄软弱、恐惧或对死亡的恐惧的诗句，认为它们会动摇护卫者的勇气。",
+  "scene_event": "一首被禁止的诗歌在城邦中悄悄流传，引发各阶层人物的反应与争论。",
+  "actors": [
+    {
+      "name": "哲人长老",
+      "label": "Philosopher",
+      "summary": "60岁，深谙审查逻辑，视其为必要统治工具。",
+      "personality": "权威"
+    },
+    {
+      "name": "哲人学徒",
+      "label": "Philosopher",
+      "summary": "22岁，对道德直觉与条件反射的界限感到困惑。",
+      "personality": "不安"
+    },
+    {
+      "name": "老护卫",
+      "label": "Guardian",
+      "summary": "45岁，从军20年，极度厌恶描写懦弱的诗句。",
+      "personality": "刚毅"
+    },
+    {
+      "name": "年轻护卫甲",
+      "label": "Guardian",
+      "summary": "20岁，读诗后感到真实恐惧，陷入沉默。",
+      "personality": "内敛"
+    },
+    {
+      "name": "年轻护卫乙",
+      "label": "Guardian",
+      "summary": "21岁，公开激烈斥责，私下承认战场恐惧。",
+      "personality": "伪善"
+    },
+    {
+      "name": "年轻护卫丙",
+      "label": "Guardian",
+      "summary": "19岁，随大流，观察他人立场。",
+      "personality": "从众"
+    },
+    {
+      "name": "女护卫",
+      "label": "Guardian",
+      "summary": "28岁，被压抑情感多年，被诗中脆弱的一幕触动。",
+      "personality": "隐忍"
+    },
+    {
+      "name": "护卫队长",
+      "label": "Guardian",
+      "summary": "38岁，纯粹的管理者，准备上报哲人。",
+      "personality": "务实"
+    },
+    {
+      "name": "受伤的老兵",
+      "label": "Guardian",
+      "summary": "50岁，深知战场真实，认为禁诗比教材真实。",
+      "personality": "沉默"
+    },
+    {
+      "name": "新兵",
+      "label": "Guardian",
+      "summary": "17岁，教育体系的完美成品，面对冲突极度焦虑。",
+      "personality": "焦虑"
+    },
+    {
+      "name": "老工匠",
+      "label": "Worker",
+      "summary": "55岁，务实派，认为英雄恐惧是人之常情。",
+      "personality": "随和"
+    },
+    {
+      "name": "年轻农民",
+      "label": "Worker",
+      "summary": "23岁，未受精英教育，不理解禁书逻辑。",
+      "personality": "质朴"
+    },
+    {
+      "name": "市集小贩",
+      "label": "Worker",
+      "summary": "35岁，禁诗传播源头，好奇又害怕。",
+      "personality": "投机"
+    },
+    {
+      "name": "织布工",
+      "label": "Worker",
+      "summary": "30岁，认为承认软弱需要更大的勇气。",
+      "personality": "坚定"
+    },
+    {
+      "name": "外来商人",
+      "label": "Outsider",
+      "summary": "来自无审查城邦，完全无法理解这里的禁书制度。",
+      "personality": "精明"
+    },
+    {
+      "name": "外来诗人",
+      "label": "Outsider",
+      "summary": "禁诗作者，认为描写真实人性即是道德。",
+      "personality": "反叛"
+    },
+    {
+      "name": "流浪哲学者",
+      "label": "Outsider",
+      "summary": "游历者，清醒的观察者，不干预只记录。",
+      "personality": "深邃"
+    }
+  ],
+  "initial_posts": [
+    {
+      "content": "你们听说了吗？市集那边在传一首被禁的诗，写的是英雄在战场上的恐惧……我没看，我发誓没看。",
+      "poster_type": "Outsider",
+      "platform": "both"
+    }
+  ],
+  "updated_at": "2026-04-17T18:06:42.517020"
+}
