@@ -4,73 +4,93 @@
 
 # MiroFish No-Zep
 
-A lightweight refactor of the original MiroFish project, adjusted for philosophy-oriented social simulation.
+一个基于原版 MiroFish 改出来的轻量分支。  
+现在这版主要服务于哲学文本驱动的社会模拟，尤其是《理想国》相关实验。
 
-[English](./README.md) | [中文文档](./README-ZH.md)
+[中文](./README.md) | [English](./README-EN.md)
 
 </div>
 
-## What This Repository Is
+## 这是什么
 
-This repository is not meant to replace the original MiroFish project.  
-It is a narrower, simpler branch built around a specific use case.
+这个仓库不是原版 MiroFish 的完整替代品，而是一个为了具体使用场景做出来的重构版。
 
-The starting point was practical:
+事情的起点很简单：
 
-- Thales, a philosophy student, wanted to use MiroFish to simulate the social world described in Plato's *Republic*.
-- The original workflow depended on Zep Cloud in places, which added setup cost for instructors who are not especially interested in managing extra APIs and cloud memory services.
-- So this refactor removes that dependency from the main local workflow and tries to keep the project usable with only an LLM API key.
+- 泰勒斯是哲学专业学生，想拿 MiroFish 去做苏格拉底《理想国》中的社会模拟。
+- 但原版流程里有一部分依赖 Zep Cloud。对于哲学系老师来说，这一步额外配置 API 和云端服务，门槛偏高。
+- 所以这次重构的目标就是把这部分拿掉，尽量把项目收敛成“只配一个 LLM API Key 就能跑”的形态。
 
-The product refactor and requirement cleanup were led from a product perspective, with the goal of making the system easier to use in teaching and small experiments.
+我本人是大连理工大学电子商务专业大一学生，目标方向是产品经理。这次主要负责：
 
-In short:
+- 需求整理
+- 交互流程收敛
+- 产品重构
+- 让项目更适合非前沿技术背景的老师和同学使用
 
-> this is a no-Zep, lighter MiroFish branch for local philosophy simulation.
+最后形成的就是现在这个版本：
 
-## What Changed
+> 一个不依赖 Zep、只需要配置 LLM API Key、适合做轻量哲学实验模拟的 MiroFish。
 
-Compared with the upstream project, this branch mainly does the following:
+## 这版改了什么
 
-- removes hard dependency on Zep Cloud
-- uses local file graphs when `USE_ZEP=false`
-- provides local fallback paths for report retrieval
-- keeps the multi-agent simulation workflow, but simplifies the setup
-- allows direct editing of agent `sentiment_bias` in Step 2
+和原版相比，这个分支最重要的变化有几条：
 
-This version is better suited for:
+- 去掉了对 Zep Cloud 的主流程依赖
+- `USE_ZEP=false` 时，图谱和报告检索走本地文件图谱
+- 报告阶段尽量提供本地可退化路径，而不是直接卡死在云端依赖上
+- Step 2 的流程更偏“课堂可用”和“实验可调”
+- 可以直接在界面里改 Agent 的 `sentiment_bias`
 
-- classroom demos
-- small-scale thought experiments
-- philosophy text based simulations
-- local deployment without extra cloud services
+如果你只是想做：
 
-If you want the full upstream vision and ecosystem, you should still refer to the original MiroFish repository.
+- 哲学课堂演示
+- 小规模社会实验
+- 本地轻量运行
 
-## Workflow
+这个版本会比原版更顺手。
 
-1. Upload source material
-2. Generate ontology and project text
-3. Build a local graph
-4. Generate personas and simulation config
-5. Run the simulation
-6. Generate a report
-7. Continue interacting with agents and report tools
+如果你要的是：
 
-## Quick Start
+- 原版完整能力
+- 云端记忆增强
+- 更大规模的通用预测场景
 
-### Requirements
+那还是应该回到原始仓库。
 
-| Tool | Version |
-|------|---------|
+## 适合什么场景
+
+- 《理想国》相关课程讨论
+- 哲学文本驱动的社会模拟
+- 思想实验
+- 课堂演示
+- 不想折腾额外云服务的研究和作业场景
+
+## 现在的基本流程
+
+1. 上传文本材料
+2. 生成本体和项目文本
+3. 构建本地图谱
+4. 生成人设和模拟配置
+5. 启动模拟
+6. 生成报告
+7. 继续和报告或 Agent 交互
+
+## 快速开始
+
+### 环境要求
+
+| 工具 | 版本要求 |
+|------|----------|
 | Node.js | 18+ |
 | Python | 3.11 - 3.12 |
-| uv | Latest |
+| uv | 最新版 |
 
-> Python 3.13 is not recommended because some dependencies may fail during installation.
+> 不建议用 Python 3.13，部分依赖安装会出问题。
 
-### 1. Configure `.env`
+### 1. 配置 `.env`
 
-Create a root `.env` file like this:
+在项目根目录创建 `.env`，最小配置如下：
 
 ```env
 LLM_API_KEY=your_api_key
@@ -81,98 +101,100 @@ USE_ZEP=false
 PORT=5001
 ```
 
-Notes:
+说明：
 
-- `USE_ZEP=false` is the intended mode of this fork
-- any OpenAI-compatible LLM endpoint should work
-- `ZEP_API_KEY` is no longer required for the main local workflow
+- 这版的推荐运行方式就是 `USE_ZEP=false`
+- 只要你的模型接口兼容 OpenAI SDK 格式即可
+- 主流程不再要求必须配置 `ZEP_API_KEY`
 
-### 2. Install Dependencies
+### 2. 安装依赖
 
 ```bash
 npm run setup:all
 ```
 
-Or step by step:
+如果想分步执行：
 
 ```bash
 npm run setup
 npm run setup:backend
 ```
 
-### 3. Start
+### 3. 启动
 
 ```bash
 npm run dev
 ```
 
-Services:
+启动后访问：
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:5001`
+- 前端：`http://localhost:3000`
+- 后端：`http://localhost:5001`
 
-## Main Features Kept in This Fork
+## 目前保留的核心能力
 
-### Local Graph
+### 本地图谱
 
-When `USE_ZEP=false`, the project uses local graph JSON files for:
+当 `USE_ZEP=false` 时，项目会把文本处理成局部图谱 JSON，用于：
 
-- graph inspection
-- report search
+- 图谱查看
+- report 检索
 - quick search
 - panorama search
-- report-side local fallback logic
+- 报告阶段的本地退化逻辑
 
-### Scene Hot Configuration
+### 场景热配置
 
-Step 2 supports editable scene configuration:
+Step 2 支持改场景配置，包括：
 
-- scene name
-- scene description
-- triggering event
-- actor list
-- initial posts
+- 场景名称
+- 场景描述
+- 触发事件
+- 角色列表
+- 初始帖子
 
-This makes the project usable for custom philosophy scenarios, not only one fixed demo setup.
+这让项目不再只适合固定 demo，而可以拿去做别的哲学或社会场景实验。
 
-### Editable Agent Sentiment Bias
+### Agent 情感倾向可调
 
-In Step 2, you can now directly edit and save:
+Step 2 现在可以直接改并保存：
 
 - `sentiment_bias`
 
-This is useful for simple comparison experiments on how emotional baselines change the simulation.
+适合做简单对照实验，比如观察不同角色情绪基线变化后，舆论演化会不会发生偏移。
 
-## Screenshots
+## 项目截图
 
 <div align="center">
 <table>
 <tr>
-<td><img src="./static/image/Screenshot/运行截图1.png" alt="Screenshot 1" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图2.png" alt="Screenshot 2" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图1.png" alt="截图1" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图2.png" alt="截图2" width="100%"/></td>
 </tr>
 <tr>
-<td><img src="./static/image/Screenshot/运行截图3.png" alt="Screenshot 3" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图4.png" alt="Screenshot 4" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图3.png" alt="截图3" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图4.png" alt="截图4" width="100%"/></td>
 </tr>
 <tr>
-<td><img src="./static/image/Screenshot/运行截图5.png" alt="Screenshot 5" width="100%"/></td>
-<td><img src="./static/image/Screenshot/运行截图6.png" alt="Screenshot 6" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图5.png" alt="截图5" width="100%"/></td>
+<td><img src="./static/image/Screenshot/运行截图6.png" alt="截图6" width="100%"/></td>
 </tr>
 </table>
 </div>
 
-## Relation to the Original Project
+## 和原项目的关系
 
-- Original project: `666ghj/MiroFish`
-- This repository: a lighter no-Zep fork for philosophy simulation
+- 原项目：`666ghj/MiroFish`
+- 这个仓库：面向哲学模拟的 No-Zep 轻量重构版
 
-## Credits
+也就是说，这里更像是一个“按教学和实验需求裁剪过的分支”，不是对原项目的一比一介绍页。
 
-- Original open-source project: **MiroFish**
-- Multi-agent simulation engine: **[OASIS](https://github.com/camel-ai/oasis)**
-- Use-case initiator: Thales
+## 致谢
+
+- 原开源项目 **MiroFish**
+- 多智能体仿真引擎 **[OASIS](https://github.com/camel-ai/oasis)**
+- 提出使用场景并推动重构的人：泰勒斯
 
 ## License
 
-This repository follows the original project license. See [LICENSE](./LICENSE).
+沿用原项目许可证，见 [LICENSE](./LICENSE)。
