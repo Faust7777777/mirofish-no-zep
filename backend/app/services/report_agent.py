@@ -873,13 +873,26 @@ class ReportAgent:
     """
     
     # 最大工具调用次数（每个章节）
-    MAX_TOOL_CALLS_PER_SECTION = 5
+    MAX_TOOL_CALLS_PER_SECTION = Config.REPORT_AGENT_MAX_TOOL_CALLS
+    
+    # 每个章节最多 ReACT 迭代次数
+    MAX_ITERATIONS_PER_SECTION = Config.REPORT_AGENT_MAX_ITERATIONS_PER_SECTION
     
     # 最大反思轮数
     MAX_REFLECTION_ROUNDS = 3
     
     # 对话中的最大工具调用次数
     MAX_TOOL_CALLS_PER_CHAT = 2
+
+    # 章节生成时的上下文长度控制
+    MAX_PREVIOUS_SECTION_CHARS = Config.REPORT_AGENT_MAX_PREVIOUS_SECTION_CHARS
+    MAX_TOTAL_PREVIOUS_CONTEXT_CHARS = Config.REPORT_AGENT_MAX_TOTAL_PREVIOUS_CONTEXT_CHARS
+    MAX_TOOL_OBSERVATION_CHARS = Config.REPORT_AGENT_MAX_TOOL_OBSERVATION_CHARS
+    MAX_TOTAL_MESSAGE_CHARS = Config.REPORT_AGENT_MAX_TOTAL_MESSAGE_CHARS
+    MAX_CHAT_REPORT_CONTENT_CHARS = Config.REPORT_AGENT_CHAT_REPORT_CONTENT_CHARS
+    OUTLINE_MAX_TOKENS = Config.REPORT_AGENT_OUTLINE_MAX_TOKENS
+    SECTION_MAX_TOKENS = Config.REPORT_AGENT_SECTION_MAX_TOKENS
+    CHAT_MAX_TOKENS = Config.REPORT_AGENT_CHAT_MAX_TOKENS
     
     def __init__(
         self, 
@@ -915,6 +928,71 @@ class ReportAgent:
         self.console_logger: Optional[ReportConsoleLogger] = None
         
         logger.info(t('report.agentInitDone', graphId=graph_id, simulationId=simulation_id))
+
+    @staticmethod
+    def _truncate_text(text: str, max_chars: int, suffix: str = "\n\n...[已截断]...") -> str:
+        if not text or len(text) <= max_chars:
+            return text
+        keep = max_chars - len(suffix)
+        if keep <= 0:
+            return text[:max_chars]
+        return text[:keep] + suffix
+
+    def _truncate_previous_sections(self, previous_sections: List[str]) -> str:
+        if not previous_sections:
+            return "（这是第一个章节）"
+
+        previous_parts = []
+        total_chars = 0
+        # 优先保留最近完成的章节
+        for sec in reversed(previous_sections):
+            truncated = self._truncate_text(sec, self.MAX_PREVIOUS_SECTION_CHARS)
+            projected = total_chars + len(truncated)
+            if previous_parts and projected > self.MAX_TOTAL_PREVIOUS_CONTEXT_CHARS:
+                break
+            previous_parts.append(truncated)
+            total_chars += len(truncated)
+
+        previous_parts.reverse()
+        return "\n\n---\n\n".join(previous_parts) if previous_parts else "（这是第一个章节）"
+
+    def _truncate_observation(self, result: str) -> str:
+        return self._truncate_text(result, self.MAX_TOOL_OBSERVATION_CHARS)
+
+    def _trim_messages_for_budget(self, messages: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        if not messages:
+            return messages
+        total_chars = sum(len(msg.get("content", "")) for msg in messages)
+        if total_chars <= self.MAX_TOTAL_MESSAGE_CHARS:
+            return messages
+
+        trimmed = [messages[0]]
+        tail = messages[1:]
+
+        # 从最新消息开始保留，确保当前任务和最近 observation 优先保留
+        kept_tail = []
+        remaining_budget = self.MAX_TOTAL_MESSAGE_CHARS - len(messages[0].get("content", ""))
+        for msg in reversed(tail):
+            content = msg.get("content", "")
+            if not content:
+                kept_tail.append(msg)
+                continue
+
+            if len(content) > min(remaining_budget, self.MAX_TOOL_OBSERVATION_CHARS):
+                content = self._truncate_text(content, min(max(remaining_budget, 800), self.MAX_TOOL_OBSERVATION_CHARS))
+
+            if len(content) <= remaining_budget or not kept_tail:
+                kept_tail.append({**msg, "content": content})
+                remaining_budget -= len(content)
+            else:
+                break
+
+            if remaining_budget <= 800:
+                break
+
+        kept_tail.reverse()
+        trimmed.extend(kept_tail)
+        return trimmed
     
     def _define_tools(self) -> Dict[str, Dict[str, Any]]:
         """定义可用工具"""
@@ -1179,7 +1257,8 @@ class ReportAgent:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                temperature=0.3
+                temperature=0.3,
+                max_tokens=self.OUTLINE_MAX_TOKENS
             )
             
             if progress_callback:
@@ -1261,16 +1340,8 @@ class ReportAgent:
         )
         system_prompt = f"{system_prompt}\n\n{get_language_instruction()}"
 
-        # 构建用户prompt - 每个已完成章节各传入最大4000字
-        if previous_sections:
-            previous_parts = []
-            for sec in previous_sections:
-                # 每个章节最多4000字
-                truncated = sec[:4000] + "..." if len(sec) > 4000 else sec
-                previous_parts.append(truncated)
-            previous_content = "\n\n---\n\n".join(previous_parts)
-        else:
-            previous_content = "（这是第一个章节）"
+        # 构建用户prompt - 限制已完成章节上下文，优先保留最近章节
+        previous_content = self._truncate_previous_sections(previous_sections)
         
         user_prompt = SECTION_USER_PROMPT_TEMPLATE.format(
             previous_content=previous_content,
@@ -1284,7 +1355,7 @@ class ReportAgent:
         
         # ReACT循环
         tool_calls_count = 0
-        max_iterations = 5  # 最大迭代轮数
+        max_iterations = self.MAX_ITERATIONS_PER_SECTION  # 最大迭代轮数
         min_tool_calls = 3  # 最少工具调用次数
         conflict_retries = 0  # 工具调用与Final Answer同时出现的连续冲突次数
         used_tools = set()  # 记录已调用过的工具名
@@ -1302,10 +1373,11 @@ class ReportAgent:
                 )
             
             # 调用LLM
+            safe_messages = self._trim_messages_for_budget(messages)
             response = self.llm.chat(
-                messages=messages,
+                messages=safe_messages,
                 temperature=0.5,
-                max_tokens=4096
+                max_tokens=self.SECTION_MAX_TOKENS
             )
 
             # 检查 LLM 返回是否为 None（API 异常或内容为空）
@@ -1434,6 +1506,7 @@ class ReportAgent:
                     call.get("parameters", {}),
                     report_context=report_context
                 )
+                result_for_prompt = self._truncate_observation(result)
 
                 if self.report_logger:
                     self.report_logger.log_tool_result(
@@ -1458,7 +1531,7 @@ class ReportAgent:
                     "role": "user",
                     "content": REACT_OBSERVATION_TEMPLATE.format(
                         tool_name=call["name"],
-                        result=result,
+                        result=result_for_prompt,
                         tool_calls_count=tool_calls_count,
                         max_tool_calls=self.MAX_TOOL_CALLS_PER_SECTION,
                         used_tools_str=", ".join(used_tools),
@@ -1503,10 +1576,11 @@ class ReportAgent:
         logger.warning(t('report.sectionMaxIter', title=section.title))
         messages.append({"role": "user", "content": REACT_FORCE_FINAL_MSG})
         
+        safe_messages = self._trim_messages_for_budget(messages)
         response = self.llm.chat(
-            messages=messages,
+            messages=safe_messages,
             temperature=0.5,
-            max_tokens=4096
+            max_tokens=self.SECTION_MAX_TOKENS
         )
 
         # 检查强制收尾时 LLM 返回是否为 None
@@ -1794,8 +1868,8 @@ class ReportAgent:
             report = ReportManager.get_report_by_simulation(self.simulation_id)
             if report and report.markdown_content:
                 # 限制报告长度，避免上下文过长
-                report_content = report.markdown_content[:15000]
-                if len(report.markdown_content) > 15000:
+                report_content = report.markdown_content[:self.MAX_CHAT_REPORT_CONTENT_CHARS]
+                if len(report.markdown_content) > self.MAX_CHAT_REPORT_CONTENT_CHARS:
                     report_content += "\n\n... [报告内容已截断] ..."
         except Exception as e:
             logger.warning(t('report.fetchReportFailed', error=e))
@@ -1825,9 +1899,11 @@ class ReportAgent:
         max_iterations = 2  # 减少迭代轮数
         
         for iteration in range(max_iterations):
+            safe_messages = self._trim_messages_for_budget(messages)
             response = self.llm.chat(
-                messages=messages,
-                temperature=0.5
+                messages=safe_messages,
+                temperature=0.5,
+                max_tokens=self.CHAT_MAX_TOKENS
             )
             
             # 解析工具调用
@@ -1858,16 +1934,18 @@ class ReportAgent:
             
             # 将结果添加到消息
             messages.append({"role": "assistant", "content": response})
-            observation = "\n".join([f"[{r['tool']}结果]\n{r['result']}" for r in tool_results])
+            observation = "\n".join([f"[{r['tool']}结果]\n{self._truncate_observation(r['result'])}" for r in tool_results])
             messages.append({
                 "role": "user",
                 "content": observation + CHAT_OBSERVATION_SUFFIX
             })
         
         # 达到最大迭代，获取最终响应
+        safe_messages = self._trim_messages_for_budget(messages)
         final_response = self.llm.chat(
-            messages=messages,
-            temperature=0.5
+            messages=safe_messages,
+            temperature=0.5,
+            max_tokens=self.CHAT_MAX_TOKENS
         )
         
         # 清理响应

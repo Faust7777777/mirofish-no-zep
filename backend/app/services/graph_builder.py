@@ -11,6 +11,7 @@ import json
 import re
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
+from datetime import datetime
 
 from zep_cloud.client import Zep
 from zep_cloud import EpisodeData, EntityEdgeSourceTarget
@@ -64,6 +65,81 @@ class GraphBuilderService:
     def _get_local_graph_path(cls, graph_id: str) -> str:
         cls._ensure_local_graph_dir()
         return os.path.join(cls.LOCAL_GRAPH_DIR, f"{graph_id}.json")
+
+    @classmethod
+    def append_local_graph_facts(
+        cls,
+        graph_id: str,
+        facts: List[Dict[str, Any]],
+        source: str = "local_simulation_memory",
+    ) -> Dict[str, Any]:
+        graph_data = cls.get_local_graph_data(graph_id)
+        nodes = graph_data.setdefault("nodes", [])
+        edges = graph_data.setdefault("edges", [])
+        node_by_name = {node.get("name"): node for node in nodes if node.get("name")}
+
+        def ensure_node(name: str, summary: str = "") -> Dict[str, Any]:
+            if name in node_by_name:
+                node = node_by_name[name]
+                if summary and not node.get("summary"):
+                    node["summary"] = summary[:500]
+                return node
+
+            node = {
+                "uuid": f"{graph_id}_sim_node_{len(nodes)}",
+                "name": name,
+                "labels": ["SimulationAgent"],
+                "summary": summary[:500] if summary else f"{name} 在模拟过程中产生了行为记录。",
+                "attributes": {
+                    "source": source,
+                },
+            }
+            nodes.append(node)
+            node_by_name[name] = node
+            return node
+
+        for item in facts:
+            fact_text = (item.get("fact") or "").strip()
+            if not fact_text:
+                continue
+
+            agent_name = item.get("agent_name") or f"Agent_{item.get('agent_id', 'unknown')}"
+            source_node = ensure_node(agent_name, fact_text)
+            target_name = item.get("target_name") or agent_name
+            target_node = ensure_node(target_name, fact_text if target_name != agent_name else "")
+
+            edge_index = len(edges)
+            edges.append({
+                "uuid": f"{graph_id}_sim_edge_{edge_index}",
+                "name": item.get("action_type") or "SIMULATION_ACTION",
+                "fact": fact_text[:2000],
+                "source_node_uuid": source_node["uuid"],
+                "target_node_uuid": target_node["uuid"],
+                "created_at": item.get("timestamp") or datetime.now().isoformat(),
+                "valid_at": item.get("timestamp"),
+                "invalid_at": None,
+                "expired_at": None,
+                "episodes": [
+                    f"{item.get('platform', 'simulation')}_round_{item.get('round_num', 0)}"
+                ],
+                "attributes": {
+                    "source": source,
+                    "platform": item.get("platform"),
+                    "round_num": item.get("round_num"),
+                    "agent_id": item.get("agent_id"),
+                    "agent_name": agent_name,
+                    "action_type": item.get("action_type"),
+                },
+            })
+
+        graph_data["node_count"] = len(nodes)
+        graph_data["edge_count"] = len(edges)
+        graph_data["entity_types"] = sorted({label for node in nodes for label in node.get("labels", []) if label})
+
+        with open(cls._get_local_graph_path(graph_id), 'w', encoding='utf-8') as f:
+            json.dump(graph_data, f, ensure_ascii=False, indent=2)
+
+        return graph_data
 
     @classmethod
     def _extract_entity_candidates(cls, text: str) -> List[str]:

@@ -17,6 +17,7 @@ from zep_cloud.client import Zep
 from ..config import Config
 from ..utils.logger import get_logger
 from ..utils.locale import get_locale, set_locale
+from .graph_builder import GraphBuilderService
 
 logger = get_logger('mirofish.zep_graph_memory_updater')
 
@@ -239,11 +240,12 @@ class ZepGraphMemoryUpdater:
         """
         self.graph_id = graph_id
         self.api_key = api_key or Config.ZEP_API_KEY
+        self.use_local_graph = not Config.USE_ZEP or graph_id.startswith("local_")
         
-        if not self.api_key:
+        if Config.USE_ZEP and not self.api_key:
             raise ValueError("ZEP_API_KEY未配置")
         
-        self.client = Zep(api_key=self.api_key)
+        self.client = None if self.use_local_graph else Zep(api_key=self.api_key)
         
         # 活动队列
         self._activity_queue: Queue = Queue()
@@ -266,7 +268,8 @@ class ZepGraphMemoryUpdater:
         self._failed_count = 0      # 发送失败的批次数
         self._skipped_count = 0     # 被过滤跳过的活动数（DO_NOTHING）
         
-        logger.info(f"ZepGraphMemoryUpdater 初始化完成: graph_id={graph_id}, batch_size={self.BATCH_SIZE}")
+        mode = "local" if self.use_local_graph else "zep"
+        logger.info(f"ZepGraphMemoryUpdater 初始化完成: graph_id={graph_id}, batch_size={self.BATCH_SIZE}, mode={mode}")
     
     def _get_platform_display_name(self, platform: str) -> str:
         """获取平台的显示名称"""
@@ -403,6 +406,32 @@ class ZepGraphMemoryUpdater:
         """
         if not activities:
             return
+
+        if self.use_local_graph:
+            facts = []
+            for activity in activities:
+                fact = activity.to_episode_text()
+                facts.append({
+                    "fact": fact,
+                    "platform": activity.platform,
+                    "agent_id": activity.agent_id,
+                    "agent_name": activity.agent_name,
+                    "action_type": activity.action_type,
+                    "round_num": activity.round_num,
+                    "timestamp": activity.timestamp,
+                    "target_name": self._extract_target_name(activity),
+                })
+
+            GraphBuilderService.append_local_graph_facts(
+                graph_id=self.graph_id,
+                facts=facts,
+                source="local_simulation_memory",
+            )
+            self._total_sent += 1
+            self._total_items_sent += len(activities)
+            display_name = self._get_platform_display_name(platform)
+            logger.info(f"成功写入 {len(activities)} 条{display_name}活动到本地图谱 {self.graph_id}")
+            return
         
         # 将多条活动合并为一条文本，用换行分隔
         episode_texts = [activity.to_episode_text() for activity in activities]
@@ -431,6 +460,16 @@ class ZepGraphMemoryUpdater:
                 else:
                     logger.error(f"批量发送到Zep失败，已重试{self.MAX_RETRIES}次: {e}")
                     self._failed_count += 1
+
+    @staticmethod
+    def _extract_target_name(activity: AgentActivity) -> Optional[str]:
+        args = activity.action_args or {}
+        return (
+            args.get("target_user_name")
+            or args.get("post_author_name")
+            or args.get("comment_author_name")
+            or args.get("original_author_name")
+        )
     
     def _flush_remaining(self):
         """发送队列和缓冲区中剩余的活动"""
