@@ -17,7 +17,7 @@ It is a narrower, simpler branch built around a specific use case.
 
 The starting point was practical:
 
-- Thales, a philosophy student, wanted to use MiroFish to simulate the social world described in Plato's *Republic*.
+- kunkun, a philosophy student, wanted to use MiroFish to simulate the social world described in Plato's *Republic*.
 - The original workflow depended on Zep Cloud in places, which added setup cost for instructors who are not especially interested in managing extra APIs and cloud memory services.
 - So this refactor removes that dependency from the main local workflow and tries to keep the project usable with only an LLM API key.
 
@@ -171,7 +171,7 @@ This is useful for simple comparison experiments on how emotional baselines chan
 
 - Original open-source project: **MiroFish**
 - Multi-agent simulation engine: **[OASIS](https://github.com/camel-ai/oasis)**
-- Use-case initiator: Thales
+- Use-case initiator: kunkun
 
 ## License
 
